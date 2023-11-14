@@ -47,8 +47,10 @@ def normalize_to_ngff(zgroup):
                 zarrays = zgroup[key].arrays(recurse=True)
 
                 unsorted_datasets = []
+                i = 0
                 for arr in zarrays:
-                    unsorted_datasets.append(ome_dataset_metadata(arr[1], zgroup[key]))
+                    unsorted_datasets.append(ome_dataset_metadata(arr[1], zgroup[key], i))
+                    i += 1
 
                 #1.apply natural sort to organize datasets metadata array for different resolution degrees (s0 -> s10)
                 #2.add datasets metadata to the ngff template
@@ -56,18 +58,18 @@ def normalize_to_ngff(zgroup):
                 zgroup[key].attrs['multiscales'] = zattrs['multiscales']
 
 
-def ome_dataset_metadata(n5arr, group):
-    text_file = open(os.path.join(os.getcwd(), "attrs", "_".join(str(n5arr.name).split("/")) + ".txt"), "w")
-    text_file.write(str(sorted(n5arr.attrs)))
-    text_file.close()
-    arr_attrs_n5 = n5arr.attrs['transform']
+def ome_dataset_metadata(n5arr, group, i):
+
     dataset_meta =  {
                     "path": os.path.relpath(n5arr.path, group.path),
                     "coordinateTransformations": [{
                         'type': 'scale',
-                        'scale': arr_attrs_n5['scale']},{
+                        'scale': [scale * dim for scale, dim in zip(group.attrs['scales'][i], group.attrs['pixelResolution']['dimensions'])]
+                        },
+                        {
                         'type': 'translation',
-                        'translation' : arr_attrs_n5['translate']
-                    }]}
+                        'translation' : [sN - s0 for sN,s0 in zip(group.attrs['scales'][i], group.attrs['scales'][i])]
+                        }
+                    ]}
     
     return dataset_meta
