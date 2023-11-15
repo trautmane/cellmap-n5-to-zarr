@@ -11,7 +11,7 @@ import numpy as np
 
 def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num):
     for src_group, dest_group in src_dest_info:
-        src_group = zarr.open_group(src_group) 
+        src_group = zarr.open_group(src_group, mode = 'r') 
         zarrays = src_group.arrays(recurse = True)
         
         for item in zarrays:

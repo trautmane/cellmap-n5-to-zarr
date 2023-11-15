@@ -11,7 +11,7 @@ def get_store_info(src, m_type, fibsem, inference, groundtruth, masks ):
         else:
             store = zarr.n5.N5Store(src)
 
-        root_src = zarr.open_group(store, mode = 'r' )
+        root_src = zarr.open_group(store, mode = 'r')
 
         fibsem_dtypes = {}
         if fibsem:#root_src[fibsem].group_keys():
@@ -20,6 +20,7 @@ def get_store_info(src, m_type, fibsem, inference, groundtruth, masks ):
             for group in root_src[fibsem].group_keys():
                 print(sorted(root_src[fibsem].group_keys()))
                 fibsem_dtypes["fibsem-" + str(list(root_src[group].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.lstrip(" /"))
+    else:
         fibsem_dtypes = { 'fibsem' : ""}
         
     labels = {"inference" : inference, "groundtruth" : groundtruth , "masks" : masks}
