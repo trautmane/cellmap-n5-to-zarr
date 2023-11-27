@@ -2,9 +2,8 @@ import pydantic_zarr as pz
 import zarr
 import os
 
-
-
-def get_store_info(src, m_type, fibsem, inference, groundtruth, masks ):
+def get_store_info(src, m_type, fibsem, inference, groundtruth, masks, lm):
+    #em data
     if src:
         if os.path.splitext(src)[-1] == ".zarr":
             store = zarr.storage.NestedDirectoryStore(src)
@@ -14,18 +13,19 @@ def get_store_info(src, m_type, fibsem, inference, groundtruth, masks ):
         root_src = zarr.open_group(store, mode = 'r')
 
         fibsem_dtypes = {}
-        if fibsem:#root_src[fibsem].group_keys():
+        if fibsem:
             fibsem_dtypes["fibsem-" + str(list(root_src[fibsem].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.strip(" /"), fibsem) 
         else:
             for group in root_src[fibsem].group_keys():
-                print(sorted(root_src[fibsem].group_keys()))
                 fibsem_dtypes["fibsem-" + str(list(root_src[group].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.lstrip(" /"))
     else:
         fibsem_dtypes = { 'fibsem' : ""}
         
     labels = {"inference" : inference, "groundtruth" : groundtruth , "masks" : masks}
+    #light microscopy data
+    light_m = {"lm" : lm}
 
-    recon_groups = list(zip([m_type, "labels"], map(drop_empty_group, [fibsem_dtypes, labels])))
+    recon_groups = list(zip([m_type, "labels", ""], map(drop_empty_group, [fibsem_dtypes, labels, light_m])))
     return recon_groups
 
 def create_cellmap_tree(recon_groups, dest, comp):
@@ -46,27 +46,26 @@ def create_cellmap_tree(recon_groups, dest, comp):
 def copy_arrays_info(groups_src, store_dest, base_group_out, comp):
     src_dest_info = []
     for group in groups_src:
-        print(groups_src)
         parent_name = group[0]
         siblings = group[1]
 
         if siblings:
-
-            parent_group = base_group_out.create_group(parent_name)
             
             for item in siblings.keys():
-                g_src = siblings[item]
-                path = os.path.join(parent_group.name, item)
-                src_dest_info.append((g_src, path))
                 
-                src_group = zarr.open_group(g_src, mode = 'a')
+                src_store = zarr.n5.N5Store(os.path.join(os.path.abspath(os.sep), siblings[item].lstrip("/")))
+                src_group = zarr.open_group(src_store, mode = 'r')
 
-                copy_n5_tree(src_group, store_dest, path, comp)
+                if parent_name == "":
+                    dest_path = os.path.join(base_group_out.name, item)
+                else: 
+                    dest_path = os.path.join(base_group_out.name, parent_name, item)
+
+                src_dest_info.append((src_group, dest_path))
+
+                copy_n5_tree(src_group, store_dest, dest_path, comp)
             
-    print('src_dest_info: ' + str(src_dest_info))
     return src_dest_info
-
-
 
 # d=groupspec.to_dict(),  
 def normalize_groupspec(d, comp):

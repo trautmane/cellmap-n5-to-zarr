@@ -11,7 +11,7 @@ import numpy as np
 
 def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num):
     for src_group, dest_group in src_dest_info:
-        src_group = zarr.open_group(src_group, mode = 'r') 
+
         zarrays = src_group.arrays(recurse = True)
         
         for item in zarrays:
@@ -20,7 +20,7 @@ def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num):
             #the chunk sizing of a dask array has a very big impact on computation performance
             # for example: for ~10TB dataset, use ~300MB chunk size.
             darray = da.from_array(arr_src, chunks=optimal_dask_chunksize(arr_src, max_dask_chunk_num))
-            dataset = zarr.open_array(store = zs, path = os.path.join(dest_group.lstrip("/"), arr_src.path.lstrip("/")), mode = 'a')
+            dataset = zarr.open_array(store =zs, path = os.path.join(dest_group.lstrip("/"), arr_src.path.lstrip("/")), mode = 'a')
             da.store(darray, dataset, lock = False)
             copy_time = time.time() - start_time
             print(f"({copy_time}s) copied {arr_src.name} to {dest_group}")
@@ -64,14 +64,23 @@ def chunk_num_warning(darr):
 # calculate automatically what chunk size scaling we should have in order to avoid having a complex dask computation graph. 
 def optimal_dask_chunksize(arr, max_dask_chunk_num):
     #calculate number of chunks within a zarr array.
-    chunk_num= np.prod([arr_dim / chunk_dim for arr_dim, chunk_dim in zip(arr.shape, arr.chunks)])
-    print(f"chunk_num: {chunk_num}")
-
+    if isinstance(arr, zarr.core.Array):
+        chunk_dims = arr.chunks
+    else:
+        chunk_dims = arr.chunksize
+    chunk_num= np.prod(arr.shape)/np.prod(chunk_dims) 
+    
+    # 1. Scale up chunk size (chunksize approx = 1GB)
     scaling = 1
-    while chunk_num > max_dask_chunk_num:
-        print(f"chunk_num: {chunk_num}")
-        chunk_num = chunk_num / scaling
+    while np.prod(chunk_dims)*arr.itemsize*pow(scaling, 3)/pow(10, 6) < 300 :
+        scaling += 1
+
+    # 3. Number of chunks should be < 50000
+    while (chunk_num / pow(scaling,3)) > max_dask_chunk_num:
         scaling +=1
-    print(f"scaling factor for {arr.name} is {scaling}")
-    print(f'chunks: {tuple(dim * scaling for dim in arr.chunks)}')
-    return tuple(dim * scaling for dim in arr.chunks) 
+
+    # 2. Make sure that chunk dims < array dims
+    while any([ch_dim > 3*arr_dim/4 for ch_dim, arr_dim in zip(tuple(dim * scaling for dim in chunk_dims), arr.shape)]):#np.prod(chunks)*arr.itemsize*pow(scaling,3) > arr.nbytes:
+        scaling -=1
+
+    return tuple(dim * scaling for dim in chunk_dims) 
