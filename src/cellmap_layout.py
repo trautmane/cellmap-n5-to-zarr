@@ -4,24 +4,20 @@ import os
 
 def get_store_info(src, m_type, fibsem, inference, groundtruth, masks, lm):
     #em data
-    if src:
-        if os.path.splitext(src)[-1] == ".zarr":
-            store = zarr.storage.NestedDirectoryStore(src)
-        else:
-            store = zarr.n5.N5Store(src)
+    print(src)
+    store = zarr.n5.N5Store(src)
 
-        root_src = zarr.open_group(store, mode = 'r')
+    root_src = zarr.open_group(store, mode = 'r')
 
-        fibsem_dtypes = {}
-        if fibsem:
-            fibsem_dtypes["fibsem-" + str(list(root_src[fibsem].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.strip(" /"), fibsem) 
-        else:
-            for group in root_src[fibsem].group_keys():
-                fibsem_dtypes["fibsem-" + str(list(root_src[group].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.lstrip(" /"))
+    fibsem_dtypes = {}
+    if fibsem:
+        for group in root_src[fibsem].group_keys():
+            fibsem_dtypes["fibsem-" + str(list(root_src[group].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.lstrip(" /"), group)
     else:
-        fibsem_dtypes = { 'fibsem' : ""}
-        
+        fibsem_dtypes["fibsem-" + str(list(root_src[fibsem].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.strip(" /")) 
+                
     labels = {"inference" : inference, "groundtruth" : groundtruth , "masks" : masks}
+    
     #light microscopy data
     light_m = {"lm" : lm}
 
@@ -39,7 +35,6 @@ def create_cellmap_tree(recon_groups, dest, comp):
             recon = root.create_group('recon-1')
 
         src_dest_info = copy_arrays_info(recon_groups, zs, recon, comp)
-     
         return root, src_dest_info, zs  
 
 # tree structure: recon_group/base_group/parent/siblings
@@ -86,7 +81,8 @@ def copy_n5_tree(n5_root, z_store, path, comp):
     return spec_n5.to_zarr(z_store, path=path)
 
 def drop_empty_group(group_dict):
-    for k in group_dict.copy():
-        if group_dict[k] == "":
-            del group_dict[k]
-    return group_dict
+    if group_dict:
+        for k in group_dict.copy():
+            if group_dict[k] == "":
+                del group_dict[k]
+        return group_dict

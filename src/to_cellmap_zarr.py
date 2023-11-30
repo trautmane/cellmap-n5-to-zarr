@@ -14,7 +14,7 @@ import zarr
 import dask.array as da
 
 @click.command()
-@click.option('--src', '-s', type=click.Path(exists = True))
+@click.option('--src', '-s',  default = "", type=click.Path(exists = True))
 @click.option("--dest", '-d', type=click.Path())
 @click.option("--dataset", '-ds', type=click.STRING)
 @click.option('--mtype', '-mt', default = "em", type=click.STRING)
@@ -23,7 +23,7 @@ import dask.array as da
 @click.option('--masks', '-m', default = "", type=click.STRING)
 @click.option('--lm', '-lm', default = "", type=click.STRING)
 @click.option('--num_cores', '-c', default = 8, type=click.INT)
-@click.option('--scheduler', '-s', default = "local", type=click.STRING)
+@click.option('--scheduler', '-s', default = "lsf", type=click.STRING)
 @click.option('--cname', "-cn", default = "zstd", type=click.STRING)
 @click.option('--clevel', '-cl', default = 9, type=click.INT)
 @click.option('--shuffle', '-sh' , default = 0, type=click.INT)

@@ -4,6 +4,7 @@ import json
 import os
 from operator import itemgetter
 import natsort
+import re
 
 def apply_ngff_template(zgroup):
     
@@ -47,11 +48,10 @@ def normalize_to_ngff(zgroup):
                 zarrays = zgroup[key].arrays(recurse=True)
 
                 unsorted_datasets = []
-                i = 0
+                
                 for arr in zarrays:
-                    unsorted_datasets.append(ome_dataset_metadata(arr[1], zgroup[key], i))
-                    i += 1
-
+                    unsorted_datasets.append(ome_dataset_metadata(arr[1], zgroup[key], int(re.findall(r'\d+', arr[0])[0])))
+                    
                 #1.apply natural sort to organize datasets metadata array for different resolution degrees (s0 -> s10)
                 #2.add datasets metadata to the ngff template
                 zattrs['multiscales'][0]['datasets'] = natsort.natsorted(unsorted_datasets, key=itemgetter(*['path']))
@@ -68,7 +68,7 @@ def ome_dataset_metadata(n5arr, group, i):
                         },
                         {
                         'type': 'translation',
-                        'translation' : [sN - s0 for sN,s0 in zip(group.attrs['scales'][i], group.attrs['scales'][i])]
+                        'translation' : [s0*(scale - 1)/2 for s0, scale in zip(group.attrs['pixelResolution']['dimensions'], group.attrs['scales'][i])]
                         }
                     ]}
     

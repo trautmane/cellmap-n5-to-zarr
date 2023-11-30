@@ -29,7 +29,7 @@ def cluster_compute(scheduler, num_cores):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
-                num_cores = 30
+                num_cores = 15
                 cluster = LSFCluster( cores=num_cores,
                         processes=1,
                         memory=f"{15 * num_cores}GB",
@@ -72,7 +72,7 @@ def optimal_dask_chunksize(arr, max_dask_chunk_num):
     
     # 1. Scale up chunk size (chunksize approx = 1GB)
     scaling = 1
-    while np.prod(chunk_dims)*arr.itemsize*pow(scaling, 3)/pow(10, 6) < 300 :
+    while np.prod(chunk_dims)*arr.itemsize*pow(scaling, 3)/pow(10, 6) < 50 :
         scaling += 1
 
     # 3. Number of chunks should be < 50000
@@ -82,5 +82,8 @@ def optimal_dask_chunksize(arr, max_dask_chunk_num):
     # 2. Make sure that chunk dims < array dims
     while any([ch_dim > 3*arr_dim/4 for ch_dim, arr_dim in zip(tuple(dim * scaling for dim in chunk_dims), arr.shape)]):#np.prod(chunks)*arr.itemsize*pow(scaling,3) > arr.nbytes:
         scaling -=1
+
+    if scaling == 0:
+        scaling = 1
 
     return tuple(dim * scaling for dim in chunk_dims) 
