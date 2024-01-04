@@ -10,17 +10,27 @@ import numpy as np
 
 
 def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num):
-    for src_group, dest_group in src_dest_info:
+    for src_obj, dest_group in src_dest_info:
 
-        zarrays = src_group.arrays(recurse = True)
+        if isinstance(src_obj, zarr.core.Array):
+            zarrays = [(src_obj.basename, src_obj)]
+        else:
+            zarrays = src_obj.arrays(recurse = True)
         
-        for item in zarrays:
+        for item in list(zarrays):
             start_time = time.time()
             arr_src = item[1]
+
             #the chunk sizing of a dask array has a very big impact on computation performance
             # for example: for ~10TB dataset, use ~300MB chunk size.
             darray = da.from_array(arr_src, chunks=optimal_dask_chunksize(arr_src, max_dask_chunk_num))
-            dataset = zarr.open_array(store =zs, path = os.path.join(dest_group.lstrip("/"), arr_src.path.lstrip("/")), mode = 'a')
+            
+            if isinstance(src_obj, zarr.core.Array):
+                dataset = zarr.open(store = zs, path = dest_group, mode = 'a')
+            else:
+                arr_path = arr_src.path.replace(src_obj.path, '')
+                dataset = zarr.open(store =zs, path=os.path.join(dest_group.lstrip("/"), arr_path.lstrip("/")), mode = 'a')
+
             da.store(darray, dataset, lock = False)
             copy_time = time.time() - start_time
             print(f"({copy_time}s) copied {arr_src.name} to {dest_group}")
@@ -29,7 +39,7 @@ def cluster_compute(scheduler, num_cores):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
-                num_cores = 15
+                num_cores = 30
                 cluster = LSFCluster( cores=num_cores,
                         processes=1,
                         memory=f"{15 * num_cores}GB",
@@ -72,7 +82,7 @@ def optimal_dask_chunksize(arr, max_dask_chunk_num):
     
     # 1. Scale up chunk size (chunksize approx = 1GB)
     scaling = 1
-    while np.prod(chunk_dims)*arr.itemsize*pow(scaling, 3)/pow(10, 6) < 50 :
+    while np.prod(chunk_dims)*arr.itemsize*pow(scaling, 3)/pow(10, 6) < 300 :
         scaling += 1
 
     # 3. Number of chunks should be < 50000

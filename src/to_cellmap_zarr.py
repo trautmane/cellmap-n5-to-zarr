@@ -1,7 +1,7 @@
 import zarr
 import os
 import click
-from numcodecs import Blosc
+from numcodecs import Zstd
 from pathlib import Path
 
 import zarr_attrs_multiscales as to_ngff
@@ -14,7 +14,7 @@ import zarr
 import dask.array as da
 
 @click.command()
-@click.option('--src', '-s',  default = "", type=click.Path(exists = True))
+@click.option('--src', '-s', type=click.Path(exists = True))
 @click.option("--dest", '-d', type=click.Path())
 @click.option("--dataset", '-ds', type=click.STRING)
 @click.option('--mtype', '-mt', default = "em", type=click.STRING)
@@ -23,13 +23,13 @@ import dask.array as da
 @click.option('--masks', '-m', default = "", type=click.STRING)
 @click.option('--lm', '-lm', default = "", type=click.STRING)
 @click.option('--num_cores', '-c', default = 8, type=click.INT)
-@click.option('--scheduler', '-s', default = "lsf", type=click.STRING)
+@click.option('--scheduler', '-s', default = "local", type=click.STRING)
 @click.option('--cname', "-cn", default = "zstd", type=click.STRING)
-@click.option('--clevel', '-cl', default = 9, type=click.INT)
+@click.option('--clevel', '-cl', default = 6, type=click.INT)
 @click.option('--shuffle', '-sh' , default = 0, type=click.INT)
 @click.option('--max_dask_chunk_num', '-maxchnum' , default = 50000, type=click.INT)
 def cli(src, dest, dataset, mtype, gtruth, inf, masks, lm, num_cores, scheduler, cname, clevel, shuffle, max_dask_chunk_num):
-    compressor = Blosc(cname=cname, clevel=clevel, shuffle=shuffle)
+    compressor = Zstd(level=clevel)
 
     #figure out the layout of an output .zarr file. 
     recon_groups = cml.get_store_info(src, mtype, dataset, inference = inf, groundtruth = gtruth, masks = masks, lm = lm)
