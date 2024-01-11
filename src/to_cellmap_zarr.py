@@ -16,23 +16,22 @@ import dask.array as da
 @click.command()
 @click.option('--src', '-s', type=click.Path(exists = True))
 @click.option("--dest", '-d', type=click.Path())
-@click.option("--dataset", '-ds', type=click.STRING)
 @click.option('--mtype', '-mt', default = "em", type=click.STRING)
 @click.option('--gtruth', '-gt', default = "", type=click.STRING)
 @click.option('--inf', '-i' , default = "", type=click.STRING)
 @click.option('--masks', '-m', default = "", type=click.STRING)
 @click.option('--lm', '-lm', default = "", type=click.STRING)
-@click.option('--num_cores', '-c', default = 8, type=click.INT)
-@click.option('--scheduler', '-s', default = "local", type=click.STRING)
+@click.option('--num_cores', '-c', default = 20, type=click.INT)
+@click.option('--scheduler', '-s', default = "lsf", type=click.STRING)
 @click.option('--cname', "-cn", default = "zstd", type=click.STRING)
 @click.option('--clevel', '-cl', default = 6, type=click.INT)
 @click.option('--shuffle', '-sh' , default = 0, type=click.INT)
 @click.option('--max_dask_chunk_num', '-maxchnum' , default = 50000, type=click.INT)
-def cli(src, dest, dataset, mtype, gtruth, inf, masks, lm, num_cores, scheduler, cname, clevel, shuffle, max_dask_chunk_num):
+def cli(src, dest, mtype, gtruth, inf, masks, lm, num_cores, scheduler, cname, clevel, shuffle, max_dask_chunk_num):
     compressor = Zstd(level=clevel)
 
     #figure out the layout of an output .zarr file. 
-    recon_groups = cml.get_store_info(src, mtype, dataset, inference = inf, groundtruth = gtruth, masks = masks, lm = lm)
+    recon_groups = cml.get_store_info(src, mtype, inference = inf, groundtruth = gtruth, masks = masks, lm = lm)
 
     #copy groups and arrays info to an output zarr file.  
     root_dest, src_dest_info, zs = cml.create_cellmap_tree(recon_groups, dest, compressor)

@@ -4,22 +4,25 @@ import os
 import re
 from fibsem_tools.io.zarr import n5_spec_unwrapper
 
-def get_store_info(src, m_type, fibsem, inference, groundtruth, masks, lm):
+def get_store_info(src, m_type, inference, groundtruth, masks, lm):
     #em data
     if src:
         store_path, path = split_n5_input(src)
-        root_src = zarr.open(store = store_path, path = path, mode = 'r')
+        store = open_store(store_path)
+        root_src = zarr.open(store = store, path = path, mode = 'r')
 
         fibsem_dtypes = {}
-
+        #if input is a .zarr array
         if isinstance(root_src, zarr.core.Array):
             fibsem_dtypes["fibsem-" + str(root_src.dtype)] = os.path.join(os.path.abspath(os.sep), src.strip(" /"))
-        else:           
-            if fibsem:
-                fibsem_dtypes["fibsem-" + str(list(root_src[fibsem].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.strip(" /"), fibsem) 
-            else:
-                for group in root_src[fibsem].group_keys():
-                    fibsem_dtypes["fibsem-" + str(list(root_src[group].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.lstrip(" /"))
+        else:
+            #if input is a group that contains a set of groups, and we want to preserve the group hierarchy           
+            # if list(root_src.group_keys()):
+            #     for group in root_src.group_keys():                  
+            #         fibsem_dtypes["fibsem-" + str(list(root_src[group].arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.lstrip(" /"))
+            # # if input is a group 
+            # else:
+            fibsem_dtypes["fibsem-" + str(list(root_src.arrays(recurse= True))[0][1].dtype)] = os.path.join(os.path.abspath(os.sep), src.lstrip(" /"))
     else:
         fibsem_dtypes = { 'fibsem' : ""}
         
@@ -28,6 +31,7 @@ def get_store_info(src, m_type, fibsem, inference, groundtruth, masks, lm):
     light_m = {"lm" : lm}
 
     recon_groups = list(zip([m_type, "labels", ""], map(drop_empty_group, [fibsem_dtypes, labels, light_m])))
+
     return recon_groups
 
 def create_cellmap_tree(recon_groups, dest, comp):

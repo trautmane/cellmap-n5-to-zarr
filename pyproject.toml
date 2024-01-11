@@ -11,11 +11,13 @@ python = ">=3.9.6,<3.13"
 zarr = "^2.16.1"
 dask = "^2023.9.2"
 numpy = "^1.26.0"
-pydantic-zarr = "^0.4.0"
+pydantic-zarr = "^0.5.0"
 numcodecs = "^0.11.0"
 dask-jobqueue = "^0.8.2"
 natsort = "^8.4.0"
 bokeh = "^3.3.0"
+fibsem-tools = "^6.3.2"
+pytest = "^7.4.4"
 
 
 [build-system]
