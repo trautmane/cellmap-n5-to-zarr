@@ -24,10 +24,11 @@ def apply_ngff_template(zgroup):
         else:
             units_list.append(unit)
 
+    axes_reverse = zgroup.attrs['axes'][::-1]
     #populate .zattrs
     z_attrs['multiscales'][0]['axes'] = [{"name": axis, 
                                           "type": "space",
-                                           "unit": unit} for (axis, unit) in zip(zgroup.attrs['axes'], 
+                                           "unit": unit} for (axis, unit) in zip(axes_reverse, 
                                                                                  units_list)]
     z_attrs['multiscales'][0]['version'] = '0.4'
     z_attrs['multiscales'][0]['name'] = zgroup.name
@@ -64,7 +65,7 @@ def ome_dataset_metadata(n5arr, group, i):
 
     translation = [s0*(scale - 1)/2 for s0, scale in zip(group.attrs['pixelResolution']['dimensions'], group.attrs['scales'][i])]
     reverse_translation = translation[::-1]
-    
+
     dataset_meta =  {
                     "path": os.path.relpath(n5arr.path, group.path),
                     "coordinateTransformations": [{
