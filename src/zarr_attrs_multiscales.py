@@ -59,16 +59,21 @@ def normalize_to_ngff(zgroup):
 
 
 def ome_dataset_metadata(n5arr, group, i):
+    scale = [scale * dim for scale, dim in zip(group.attrs['scales'][i], group.attrs['pixelResolution']['dimensions'])]
+    reverse_scale = scale[::-1]
 
+    translation = [s0*(scale - 1)/2 for s0, scale in zip(group.attrs['pixelResolution']['dimensions'], group.attrs['scales'][i])]
+    reverse_translation = translation[::-1]
+    
     dataset_meta =  {
                     "path": os.path.relpath(n5arr.path, group.path),
                     "coordinateTransformations": [{
                         'type': 'scale',
-                        'scale': [scale * dim for scale, dim in zip(group.attrs['scales'][i], group.attrs['pixelResolution']['dimensions'])]
+                        'scale': reverse_scale
                         },
                         {
                         'type': 'translation',
-                        'translation' : [s0*(scale - 1)/2 for s0, scale in zip(group.attrs['pixelResolution']['dimensions'], group.attrs['scales'][i])]
+                        'translation' : reverse_translation
                         }
                     ]}
     
