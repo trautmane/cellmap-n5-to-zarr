@@ -23,9 +23,7 @@ import dask.array as da
 @click.option('--lm', '-lm', default = "", type=click.STRING)
 @click.option('--num_cores', '-c', default = 20, type=click.INT)
 @click.option('--scheduler', '-s', default = "lsf", type=click.STRING)
-#@click.option('--cname', "-cn", default = "zstd", type=click.STRING)
 @click.option('--clevel', '-cl', default = 6, type=click.INT)
-@click.option('--shuffle', '-sh' , default = 0, type=click.INT)
 @click.option('--max_dask_chunk_num', '-maxchnum' , default = 50000, type=click.INT)
 @click.option('--dry', default = False, type=click.BOOL)
 def cli(src, dest, mtype, gtruth, inf, masks, lm, num_cores, scheduler, clevel, max_dask_chunk_num, dry):

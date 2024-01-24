@@ -39,7 +39,7 @@ def cluster_compute(scheduler, num_cores):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
-                num_cores = 20
+                num_cores = 30
                 cluster = LSFCluster( cores=num_cores,
                         processes=1,
                         memory=f"{15 * num_cores}GB",
