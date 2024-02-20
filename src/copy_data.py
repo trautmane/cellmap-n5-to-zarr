@@ -9,7 +9,7 @@ import time
 import numpy as np
 
 
-def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num):
+def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num, comp):
     for src_obj, dest_group in src_dest_info:
 
         if isinstance(src_obj, zarr.core.Array):
@@ -26,10 +26,12 @@ def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num):
             darray = da.from_array(arr_src, chunks=optimal_dask_chunksize(arr_src, max_dask_chunk_num))
             
             if isinstance(src_obj, zarr.core.Array):
-                dataset = zarr.open(store = zs, path = dest_group, mode = 'a', write_empty_chunks=False)
+                dataset = zarr.open(store = zs, path = dest_group,
+                                    mode='w', shape=arr_src.shape, chunks=arr_src.chunks, dtype=arr_src.dtype, compressor=comp)
             else:
                 arr_path = arr_src.path.replace(src_obj.path, '')
-                dataset = zarr.open(store =zs, path=os.path.join(dest_group.lstrip("/"), arr_path.lstrip("/")), mode = 'a', write_empty_chunks=False)
+                dataset = zarr.open(store =zs, path=os.path.join(dest_group.lstrip("/"), arr_path.lstrip("/")),
+                                    mode='w', shape=arr_src.shape, chunks=arr_src.chunks, dtype=arr_src.dtype, compressor=comp)
 
             da.store(darray, dataset, lock = False)
             copy_time = time.time() - start_time
@@ -39,13 +41,15 @@ def cluster_compute(scheduler, num_cores):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
-                num_cores = 30
+                num_cores = 40
                 cluster = LSFCluster( cores=num_cores,
                         processes=1,
                         memory=f"{15 * num_cores}GB",
                         ncpus=num_cores,
                         mem=15 * num_cores,
-                        walltime="48:00"
+                        walltime="48:00",
+                        death_timeout = 240.0,
+                        local_directory = "/scratch/zubovy/"
                         )
                 cluster.scale(num_cores)
             elif scheduler == "local":

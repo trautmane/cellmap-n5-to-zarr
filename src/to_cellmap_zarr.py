@@ -34,14 +34,17 @@ def cli(src, dest, mtype, gtruth, inf, masks, lm, num_cores, scheduler, clevel, 
 
     #copy groups and arrays info to an output zarr file.  
     root_dest, src_dest_info, zs = cml.create_cellmap_tree(recon_groups, dest, compressor)
-
+    
     #add ome ngff multiscale metadata, if applicable
-    to_ngff.normalize_to_ngff(root_dest)
+    for item in src_dest_info:
+        if isinstance(item[0], zarr.hierarchy.Group): 
+            dest_group = root_dest[item[1]]    
+            to_ngff.normalize_to_ngff(dest_group)
     
     #copy input .n5 arrays data to corresponding arrays in the output .zarr file.
     if dry == False:
         copy_arrays_data = cd.cluster_compute(scheduler, num_cores)(cd.copy_arrays_data)
-        copy_arrays_data(src_dest_info, zs, max_dask_chunk_num)
+        copy_arrays_data(src_dest_info, zs, max_dask_chunk_num, compressor)
    
 
 if __name__ == '__main__':
