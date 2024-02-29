@@ -35,8 +35,16 @@ def apply_ngff_template(zgroup):
                                                                                  units_list)]
     z_attrs['multiscales'][0]['version'] = '0.4'
     z_attrs['multiscales'][0]['name'] = zgroup.name
-    z_attrs['multiscales'][0]['coordinateTransformations'] = [{"type": "scale",
-                    "scale": [1.0, 1.0, 1.0]}, {"type" : "translation", "translation" : [1.0, 1.0, 1.0]}]
+    z_attrs['multiscales'][0]['coordinateTransformations'] = [
+                {
+                    "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "type": "scale"
+                }
+            ]
     
     return z_attrs
 
