@@ -45,6 +45,27 @@ def apply_ngff_template(zgroup):
                     "type": "scale"
                 }
             ]
+    # delete legacy n5 attrs
+    if 'axes' in z_attrs:
+        del z_attrs['axes']
+    
+    if 'pixelResolution' in z_attrs:
+        del z_attrs['pixelResolution']
+    
+    if 'scales' in z_attrs:
+        del z_attrs['scales']
+        
+    if 'units' in z_attrs:
+        del z_attrs['units']
+        
+    if 'translate' in z_attrs:
+        del z_attrs['translate']
+        
+    if 'scales' in z_attrs:
+        del z_attrs['scales']
+        
+    if 'ordering' in z_attrs:
+        del z_attrs['ordering']
     
     return z_attrs
 
