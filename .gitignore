@@ -1,2 +1,5 @@
+
+**/__pycache__/
 .DS_Store
 dask_dashboard_link.txt
+poetry.lock

@@ -9,18 +9,30 @@ import time
 import numpy as np
 
 
-def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num):
-    for src_group, dest_group in src_dest_info:
+def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num, comp):
+    for src_obj, dest_group in src_dest_info:
 
-        zarrays = src_group.arrays(recurse = True)
+        if isinstance(src_obj, zarr.core.Array):
+            zarrays = [(src_obj.basename, src_obj)]
+        else:
+            zarrays = src_obj.arrays(recurse = True)
         
-        for item in zarrays:
+        for item in list(zarrays):
             start_time = time.time()
             arr_src = item[1]
+
             #the chunk sizing of a dask array has a very big impact on computation performance
             # for example: for ~10TB dataset, use ~300MB chunk size.
             darray = da.from_array(arr_src, chunks=optimal_dask_chunksize(arr_src, max_dask_chunk_num))
-            dataset = zarr.open_array(store =zs, path = os.path.join(dest_group.lstrip("/"), arr_src.path.lstrip("/")), mode = 'a')
+            
+            if isinstance(src_obj, zarr.core.Array):
+                dataset = zarr.open(store = zs, path = dest_group,
+                                    mode='w', shape=arr_src.shape, chunks=arr_src.chunks, dtype=arr_src.dtype, compressor=comp)
+            else:
+                arr_path = arr_src.path.replace(src_obj.path, '')
+                dataset = zarr.open(store =zs, path=os.path.join(dest_group.lstrip("/"), arr_path.lstrip("/")),
+                                    mode='w', shape=arr_src.shape, chunks=arr_src.chunks, dtype=arr_src.dtype, compressor=comp)
+
             da.store(darray, dataset, lock = False)
             copy_time = time.time() - start_time
             print(f"({copy_time}s) copied {arr_src.name} to {dest_group}")
@@ -29,13 +41,15 @@ def cluster_compute(scheduler, num_cores):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
-                num_cores = 30
+                num_cores = 40
                 cluster = LSFCluster( cores=num_cores,
                         processes=1,
                         memory=f"{15 * num_cores}GB",
                         ncpus=num_cores,
                         mem=15 * num_cores,
-                        walltime="48:00"
+                        walltime="48:00",
+                        death_timeout = 240.0,
+                        local_directory = "/scratch/zubovy/"
                         )
                 cluster.scale(num_cores)
             elif scheduler == "local":
@@ -82,5 +96,8 @@ def optimal_dask_chunksize(arr, max_dask_chunk_num):
     # 2. Make sure that chunk dims < array dims
     while any([ch_dim > 3*arr_dim/4 for ch_dim, arr_dim in zip(tuple(dim * scaling for dim in chunk_dims), arr.shape)]):#np.prod(chunks)*arr.itemsize*pow(scaling,3) > arr.nbytes:
         scaling -=1
+
+    if scaling == 0:
+        scaling = 1
 
     return tuple(dim * scaling for dim in chunk_dims) 
