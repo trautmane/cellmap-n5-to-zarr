@@ -42,7 +42,7 @@ def create_cellmap_tree(recon_groups, dest, comp):
         if 'recon-1' in root.group_keys():
             recon = root['recon-1']
         else:
-            recon = root.create_group('recon-1')
+            recon = root.require_group('recon-1')
 
         src_dest_info = copy_arrays_info(recon_groups, zs, recon, comp)
      
