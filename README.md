@@ -1,14 +1,14 @@
 This script takes paths to raw/label n5 datasets as an input, and outputs .zarr container with the correct cellmap schema:
 
   n5 / zarr container
-  &nbsp;  recon_{number}
-      em
-        fibsem-uint8
-        fibsem-uint16
-      labels
-        inference (predictions and segmentations)
-        groundtruth (training crops)
-        mask
+  - recon_{number}
+    - em
+        * fibsem-uint8
+        * fibsem-uint16
+    - labels
+      * inference (predictions and segmentations)
+      * groundtruth (training crops)
+      * mask
       
 Installation:
   1. cd PATH_TO_POETRY_PROJECT_DIRECTORY/
