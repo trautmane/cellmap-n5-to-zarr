@@ -1,4 +1,4 @@
-This script takes paths to raw/label n5 datasets as an input, and outputs .zarr file with the correct cellmap schema:
+This script takes paths to raw/label n5 datasets as an input, and outputs .zarr container with the correct cellmap schema:
 
   n5 / zarr container
     recon_{number}
@@ -15,4 +15,5 @@ Installation:
   2. poetry install
 
 Example(with lsf cluster):
+
   bsub -n 15 -J n5convert -o path_to_output_log_file 'poetry run python src/to_cellmap_zarr.py --num_workers=300 --cluster=lsf --src=path_to_raw_data_n5_group(array) --dest=path_to_the_output_zarr_container';
