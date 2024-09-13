@@ -1,7 +1,7 @@
 This script takes paths to raw/label n5 datasets as an input, and outputs .zarr container with the correct cellmap schema:
 
   n5 / zarr container
-    recon_{number}
+  &nbsp;  recon_{number}
       em
         fibsem-uint8
         fibsem-uint16
