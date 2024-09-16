@@ -21,7 +21,7 @@ import dask.array as da
 @click.option('--masks', '-m', default = "", type=click.STRING)
 @click.option('--lm', '-lm', default = "", type=click.STRING)
 @click.option('--num_workers', '-w', default = 100, type=click.INT)
-@click.option('--cluster', '-s', default = "lsf", type=click.STRING)
+@click.option('--cluster', '-c', default = "lsf", type=click.STRING)
 @click.option('--clevel', '-cl', default = 6, type=click.INT)
 @click.option('--max_dask_chunk_num', '-maxchnum' , default = 50000, type=click.INT)
 @click.option('--dry', default = False, type=click.BOOL)
