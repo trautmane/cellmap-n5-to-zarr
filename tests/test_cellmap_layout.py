@@ -15,7 +15,7 @@ import cellmap_layout as cml
 def filepaths(tmp_path_factory):
     path = tmp_path_factory.mktemp('test_data', numbered=False)
     input = path / 'input/test_file.n5'
-    output = path / 'output/test_file_new1.zarr'
+    output = path / 'output/test_file_new.zarr'
 
     populate_n5file(input)
     return (input, output)

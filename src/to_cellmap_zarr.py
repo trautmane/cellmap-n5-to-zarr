@@ -6,7 +6,6 @@ from pathlib import Path
 
 import zarr_attrs_multiscales as to_ngff
 import copy_data as cd
-#from copy_data import cluster_compute
 import cellmap_layout as cml
 
 import os
@@ -21,12 +20,12 @@ import dask.array as da
 @click.option('--inf', '-i' , default = "", type=click.STRING)
 @click.option('--masks', '-m', default = "", type=click.STRING)
 @click.option('--lm', '-lm', default = "", type=click.STRING)
-@click.option('--num_cores', '-c', default = 20, type=click.INT)
-@click.option('--scheduler', '-s', default = "lsf", type=click.STRING)
+@click.option('--num_workers', '-w', default = 100, type=click.INT)
+@click.option('--cluster', '-s', default = "lsf", type=click.STRING)
 @click.option('--clevel', '-cl', default = 6, type=click.INT)
 @click.option('--max_dask_chunk_num', '-maxchnum' , default = 50000, type=click.INT)
 @click.option('--dry', default = False, type=click.BOOL)
-def cli(src, dest, mtype, gtruth, inf, masks, lm, num_cores, scheduler, clevel, max_dask_chunk_num, dry):
+def cli(src, dest, mtype, gtruth, inf, masks, lm, num_workers, cluster, clevel, max_dask_chunk_num, dry):
     compressor = Zstd(level=clevel)
 
     #figure out the layout of an output .zarr file. 
@@ -43,7 +42,7 @@ def cli(src, dest, mtype, gtruth, inf, masks, lm, num_cores, scheduler, clevel, 
     
     #copy input .n5 arrays data to corresponding arrays in the output .zarr file.
     if dry == False:
-        copy_arrays_data = cd.cluster_compute(scheduler, num_cores)(cd.copy_arrays_data)
+        copy_arrays_data = cd.cluster_compute(cluster, num_workers)(cd.copy_arrays_data)
         copy_arrays_data(src_dest_info, zs, max_dask_chunk_num, compressor)
    
 

@@ -37,12 +37,13 @@ def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num, comp):
             copy_time = time.time() - start_time
             print(f"({copy_time}s) copied {arr_src.name} to {dest_group}")
 
-def cluster_compute(scheduler, num_cores):
+def cluster_compute(scheduler, num_processes):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
-                num_cores = 40
-                cluster = LSFCluster( cores=num_cores,
+                num_cores = 1
+                cluster = LSFCluster(
+                        cores=num_cores,
                         processes=1,
                         memory=f"{15 * num_cores}GB",
                         ncpus=num_cores,
@@ -51,7 +52,7 @@ def cluster_compute(scheduler, num_cores):
                         death_timeout = 240.0,
                         local_directory = "/scratch/zubovy/"
                         )
-                cluster.scale(num_cores)
+                cluster.scale(num_processes)
             elif scheduler == "local":
                     cluster = LocalCluster()
 
