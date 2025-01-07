@@ -50,7 +50,7 @@ def cluster_compute(scheduler, num_processes):
                         mem=15 * num_cores,
                         walltime="48:00",
                         death_timeout = 240.0,
-                        local_directory = "/scratch/zubovy/"
+                        local_directory = "/scratch/$USER/"
                         )
                 cluster.scale(num_processes)
             elif scheduler == "local":
