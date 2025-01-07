@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "zarr-normalization-cellmap"
+name = "cellmap-n5-to-zarr"
 version = "0.1.0"
 description = ""
 authors = ["Yurii Zubov <zubov452@gmail.com>"]
