@@ -43,19 +43,19 @@ def cluster_compute(scheduler, num_processes, lsf_runtime_limit, lsf_worker_log_
             if scheduler == "lsf":
                 num_cores = 1
                 cluster = LSFCluster(
-                        cores=num_cores,
-                        processes=1,
-                        memory=f"{15 * num_cores}GB",
-                        ncpus=num_cores,
-                        mem=15 * num_cores,
-                        walltime=lsf_runtime_limit,
-                        death_timeout = 240.0,                            # Seconds to wait for a scheduler before closing workers
-                        log_directory = lsf_worker_log_dir,               # Directory for worker logs (if None, logs will be emailed to you)
-                        local_directory = "/scratch/$USER/",              # Dask worker local directory for file spilling.
-                        job_extra_directives = lsf_job_extra_directives)
+                    cores=num_cores,
+                    processes=1,
+                    memory=f"{15 * num_cores}GB",
+                    ncpus=num_cores,
+                    mem=15 * num_cores,
+                    walltime=lsf_runtime_limit,
+                    death_timeout = 240.0,                            # Seconds to wait for a scheduler before closing workers
+                    log_directory = lsf_worker_log_dir,               # Directory for worker logs (if None, logs will be emailed to you)
+                    local_directory = "/scratch/$USER/",              # Dask worker local directory for file spilling.
+                    job_extra_directives = lsf_job_extra_directives)
                 cluster.scale(num_processes)
             elif scheduler == "local":
-                    cluster = LocalCluster()
+                cluster = LocalCluster()
             else:
                 raise ValueError("Invalid scheduler type. Please specify either 'local' or 'lsf'.")
 
@@ -70,7 +70,7 @@ def cluster_compute(scheduler, num_processes, lsf_runtime_limit, lsf_worker_log_
 # raise dask warning
 def chunk_num_warning(darr):
     chunk_num =  da.true_divide(darr.shape, darr.chunksize).prod()
-    if (chunk_num > pow(10, 5)):
+    if chunk_num > pow(10, 5):
         
         log_file_path = os.path.join(os.getcwd(), "warnings")
         os.mkdir(log_file_path)
