@@ -37,7 +37,7 @@ def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num, comp):
             copy_time = time.time() - start_time
             print(f"({copy_time}s) copied {arr_src.name} to {dest_group}")
 
-def cluster_compute(scheduler, num_processes):
+def cluster_compute(scheduler, num_processes, project_name):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
@@ -51,7 +51,7 @@ def cluster_compute(scheduler, num_processes):
                         walltime="48:00",
                         death_timeout = 240.0,
                         local_directory = "/scratch/$USER/",
-                        project="cellmap" # TODO: make this value a parameter
+                        project=project_name
                         )
                 cluster.scale(num_processes)
             elif scheduler == "local":
