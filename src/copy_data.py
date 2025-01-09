@@ -37,7 +37,7 @@ def copy_arrays_data(src_dest_info, zs, max_dask_chunk_num, comp):
             copy_time = time.time() - start_time
             print(f"({copy_time}s) copied {arr_src.name} to {dest_group}")
 
-def cluster_compute(scheduler, num_processes, project_name):
+def cluster_compute(scheduler, num_processes, lsf_runtime_limit, lsf_worker_log_dir, lsf_job_extra_directives):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
@@ -48,14 +48,16 @@ def cluster_compute(scheduler, num_processes, project_name):
                         memory=f"{15 * num_cores}GB",
                         ncpus=num_cores,
                         mem=15 * num_cores,
-                        walltime="48:00",
-                        death_timeout = 240.0,
-                        local_directory = "/scratch/$USER/",
-                        project=project_name
-                        )
+                        walltime=lsf_runtime_limit,
+                        death_timeout = 240.0,                            # Seconds to wait for a scheduler before closing workers
+                        log_directory = lsf_worker_log_dir,               # Directory for worker logs (if None, logs will be emailed to you)
+                        local_directory = "/scratch/$USER/",              # Dask worker local directory for file spilling.
+                        job_extra_directives = lsf_job_extra_directives)
                 cluster.scale(num_processes)
             elif scheduler == "local":
                     cluster = LocalCluster()
+            else:
+                raise ValueError("Invalid scheduler type. Please specify either 'local' or 'lsf'.")
 
             with Client(cluster) as cl:
                 text_file = open(os.path.join(os.getcwd(), "dask_dashboard_link" + ".txt"), "w")
