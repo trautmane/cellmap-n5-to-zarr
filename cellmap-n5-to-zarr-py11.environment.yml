@@ -1,0 +1,8 @@
+name: cellmap-n5-to-zarr-py11
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.11.11
+  - poetry

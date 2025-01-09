@@ -1,5 +1,4 @@
 import zarr 
-import os
 import json
 import os
 from operator import itemgetter
@@ -7,12 +6,14 @@ import natsort
 import re
 
 def apply_ngff_template(zgroup):
-    
-    f_zattrs_template = open('src/zarr_attrs_template.json')
+
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+
+    f_zattrs_template = open(f'{src_dir}/zarr_attrs_template.json')
     z_attrs = json.load(f_zattrs_template)
     f_zattrs_template.close()
 
-    junits = open('src/unit_names.json')
+    junits = open(f'{src_dir}/unit_names.json')
     unit_names = json.load(junits)
     junits.close()
 

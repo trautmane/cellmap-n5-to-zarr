@@ -50,7 +50,8 @@ def cluster_compute(scheduler, num_processes):
                         mem=15 * num_cores,
                         walltime="48:00",
                         death_timeout = 240.0,
-                        local_directory = "/scratch/$USER/"
+                        local_directory = "/scratch/$USER/",
+                        project="cellmap" # TODO: make this value a parameter
                         )
                 cluster.scale(num_processes)
             elif scheduler == "local":
