@@ -52,7 +52,8 @@ def cluster_compute(scheduler, num_processes, lsf_runtime_limit, lsf_worker_log_
                     death_timeout = 240.0,                            # Seconds to wait for a scheduler before closing workers
                     log_directory = lsf_worker_log_dir,               # Directory for worker logs (if None, logs will be emailed to you)
                     local_directory = "/scratch/$USER/",              # Dask worker local directory for file spilling.
-                    job_extra_directives = lsf_job_extra_directives)
+                    job_extra_directives = lsf_job_extra_directives,
+                    cancel_command = "bkill -d")
                 cluster.scale(num_processes)
             elif scheduler == "local":
                 cluster = LocalCluster()
