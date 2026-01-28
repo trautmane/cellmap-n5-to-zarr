@@ -1,5 +1,6 @@
 import os
 import zarr
+import dask
 import dask.array as da
 
 from dask.distributed import Client
@@ -42,6 +43,7 @@ def cluster_compute(scheduler, num_processes, lsf_runtime_limit, lsf_worker_log_
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
                 num_cores = 1
+                dask.config.set({"jobqueue.lsf.cancel-command": "bkill -d"})
                 cluster = LSFCluster(
                     cores=num_cores,
                     processes=1,
@@ -52,8 +54,7 @@ def cluster_compute(scheduler, num_processes, lsf_runtime_limit, lsf_worker_log_
                     death_timeout = 240.0,                            # Seconds to wait for a scheduler before closing workers
                     log_directory = lsf_worker_log_dir,               # Directory for worker logs (if None, logs will be emailed to you)
                     local_directory = "/scratch/$USER/",              # Dask worker local directory for file spilling.
-                    job_extra_directives = lsf_job_extra_directives,
-                    cancel_command = "bkill -d")
+                    job_extra_directives = lsf_job_extra_directives)
                 cluster.scale(num_processes)
             elif scheduler == "local":
                 cluster = LocalCluster()
