@@ -1,5 +1,6 @@
 import os
 import zarr
+import dask
 import dask.array as da
 
 from dask.distributed import Client
@@ -42,6 +43,7 @@ def cluster_compute(scheduler, num_processes, lsf_runtime_limit, lsf_worker_log_
         def wrapper(*args, **kwargs):
             if scheduler == "lsf":
                 num_cores = 1
+                dask.config.set({"jobqueue.lsf.cancel-command": "bkill -d"})
                 cluster = LSFCluster(
                     cores=num_cores,
                     processes=1,
